@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6bcb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Suivi OSCP">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Suivi OSCP</title>
+<style>
+:root{--bg:#f5f7fa;--sf:#fff;--fg:#14202e;--mu:#5f6b7a;--bd:#dde3ea;--ac:#0b6bcb;--ok:#1a8f5c;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f151c;--sf:#171f28;--fg:#e8edf3;--mu:#92a0b0;--bd:#26313d;--ac:#5aa7f0;--ok:#4cc38a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f151c;--sf:#171f28;--fg:#e8edf3;--mu:#92a0b0;--bd:#26313d;--ac:#5aa7f0;--ok:#4cc38a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:640px;margin:0 auto;padding:16px 14px 48px}
+h1{font-size:1.5rem;margin:8px 0 4px}
+.sub{color:var(--mu);margin:0 0 14px;font-size:.92rem}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.pc{margin:6px 0 14px;font-size:.92rem;color:var(--mu)}
+.sync{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:0 0 8px;font-size:.9rem;color:var(--mu)}
+.sync input{flex:1;min-width:0;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--fg);font-size:16px}
+button{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--ac);font-size:.9rem;font-weight:600}
+h2{font-size:1.1rem;margin:26px 0 8px}
+.wk{background:var(--sf);border:1px solid var(--bd);border-radius:10px;margin:0 0 10px;overflow:hidden}
+.wk h3{margin:0;padding:9px 12px;font-size:.95rem;font-weight:600;display:flex;justify-content:space-between;border-bottom:1px solid var(--bd)}
+.wk h3 span{color:var(--mu);font-weight:400}
+label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-top:1px solid var(--bd);cursor:pointer}
+.wk h3+label{border-top:0}
+input[type=checkbox]{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--ok)}
+label b{display:block;font-weight:500}
+label small{color:var(--mu)}
+input:checked+div{opacity:.5;text-decoration:line-through}
+.sat small{color:var(--ac)}
+</style>
+</head>
+<body>
+<main>
+<h1>Suivi OSCP</h1>
+<p class="sub">Départ le 16 novembre 2026. Examen visé : mi-juin 2028.</p>
+<div class="bar"><i id="fill"></i></div>
+<p class="pc" id="pc"></p>
+<div class="sync"><span id="st">Synchronisation désactivée</span><button id="cfg" type="button">Configurer</button></div>
+<div class="sync" id="form" hidden><input id="tok" type="password" placeholder="Jeton GitHub (droit gist)" autocomplete="off" autocapitalize="off"><button id="sv" type="button">Enregistrer</button></div>
+<h2>Du 16 novembre 2026 au 8 juin 2027</h2>
+<div id="days"></div>
+<h2>Du 7 juin 2027 à l’examen</h2>
+<div id="miles"></div>
+</main>
+<script>
+var KEY="oscp26b",DESC="suivi-oscp-2026",S={},T="",G="",CB={},busy=false,timer=null;
+try{S=JSON.parse(localStorage.getItem(KEY)||"{}");T=localStorage.getItem(KEY+"t")||"";G=localStorage.getItem(KEY+"g")||""}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function on(id){return !!(S[id]&&S[id].v)}
+
+var H={"2026-12-25":1,"2027-01-01":1,"2027-03-29":1,"2027-05-06":1,"2027-05-17":1};
+var P=[["THM Junior Penetration Tester",40,1],["THM Offensive Pentesting",27,1],["THM Web Application Red Teaming",23,1],["",23,0],["THM Red Teaming (Active Directory)",29,1]];
+var MM=["Relevant","Retro","Internal","Daily Bugle","VulnNet: Active","VulnNet: Internal","Attacktive Directory","Road"];
+var SAT=[
+ ["samedi · guidée, notes à chaque étape",["Kenobi","Blue","Ignite","Simple CTF","LazyAdmin","Wgel CTF"]],
+ ["samedi · seul d’abord, indice à 2 h, walkthrough à 4 h",["Alfred","HackPark","Steel Mountain","Skynet","tomghost","Blaster","Mr Robot","Overpass 2","Anthem","Blueprint","Team","All in One"]],
+ ["samedi · sans aide, avec rapport",["Year of the Dog","Undiscovered","Mnemonic","Jeff","Refaire une machine faite avec aide","Refaire une machine faite avec aide"]]
+];
+function iso(d){return d.toISOString().slice(0,10)}
+function lab(d){return d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"})}
+var items=[],d=new Date(Date.UTC(2026,10,16)),p=0,n=0;
+while(p<P.length){
+  var w=d.getUTCDay(),k=iso(d);
+  if(w>0&&w<6&&!H[k]){
+    n++;var ph=P[p],t,s;
+    if(ph[2]){t=ph[0];s="room "+n+" sur "+ph[1]}
+    else{t="Machine THM sans aide : "+MM[Math.floor((n-1)/3)];s="jour "+n+" sur "+ph[1]+" · rapport à la fin"}
+    items.push({id:k,d:new Date(d),t:t,s:s});
+    if(n==ph[1]){p++;n=0}
+  }
+  d.setUTCDate(d.getUTCDate()+1);
+}
+var sd=new Date(Date.UTC(2026,10,21)),cnt=[0,0,0];
+for(;sd<=new Date(Date.UTC(2027,5,5));sd.setUTCDate(sd.getUTCDate()+7)){
+  var sk=iso(sd),b;
+  if(sk<="2026-12-26")b=0;else if(sk<="2027-03-20")b=1;else if(sk<="2027-04-24")continue;else b=2;
+  var nm=SAT[b][1][cnt[b]++];
+  items.push({id:"s"+sk,d:new Date(sd),t:(nm.indexOf("Refaire")==0?nm:"Machine THM : "+nm),s:SAT[b][0],sat:1});
+}
+items.sort(function(a,b){return a.d-b.d||(a.sat?1:-1)});
+function monday(x){var m=new Date(x),g=(m.getUTCDay()+6)%7;m.setUTCDate(m.getUTCDate()-g);return iso(m)}
+var weeks={},order=[];
+items.forEach(function(it){var m=monday(it.d);if(!weeks[m]){weeks[m]=[];order.push(m)}weeks[m].push(it)});
+
+function row(id,t,sub,sat){
+  var l=document.createElement("label");if(sat)l.className="sat";
+  var c=document.createElement("input");c.type="checkbox";c.checked=on(id);CB[id]=c;
+  c.onchange=function(){S[id]={v:c.checked?1:0,t:Date.now()};save();upd();later()};
+  var dv=document.createElement("div");dv.innerHTML="<b></b>"+(sub?"<small></small>":"");
+  dv.firstChild.textContent=t;if(sub)dv.lastChild.textContent=sub;
+  l.appendChild(c);l.appendChild(dv);return l;
+}
+var box=document.getElementById("days"),all=[],wks=[];
+order.forEach(function(m){
+  var wk=document.createElement("div");wk.className="wk";
+  var h=document.createElement("h3"),md=new Date(m+"T00:00:00Z");
+  h.innerHTML="<b>Semaine du "+md.toLocaleDateString("fr-FR",{day:"numeric",month:"long",timeZone:"UTC"})+"</b><span></span>";
+  wk.appendChild(h);
+  weeks[m].forEach(function(it){all.push(it.id);wk.appendChild(row(it.id,lab(it.d)+" · "+it.t,it.s,it.sat))});
+  box.appendChild(wk);wks.push({h:h,ids:weeks[m].map(function(x){return x.id})});
+});
+var M=[
+["Juin 2027",["Pause d’une semaine","Révision des notes, machines faites avec aide refaites"]],
+["HTB · Linux (juillet et août 2027)",["Networked","Jarvis","SwagShop","Postman","Traverxec","Mango","SolidState","Busqueda","Sau","Keeper"]],
+["HTB · Windows",["Bastion","Bounty","Jerry","Remote","Escape","Support","Intelligence","Jeeves","Manager"]],
+["HTB · Active Directory",["Active","Forest","Sauna","Return","Cascade","Flight","Puppy","TombWatcher"]],
+["Contrôle d’août 2027",["Je roote seul une machine facile ou intermédiaire en 3 à 4 h"]],
+["Septembre 2027 à janvier 2028",["Achat de Learn One (début septembre)","Cours PEN-200 et tous les exercices","Challenge labs PEN-200"]],
+["Proving Grounds · Windows (février à avril 2028)",["Algernon","Access","Authby","Heist","Internal","Resourced","Squid","Shenzi","Nickel","Slort","MedJed","DVR4","Jacko","Kevin","Symbolic"]],
+["Proving Grounds · Active Directory",["Nagoya","Osaka","Vault","Hutch","Nara"]],
+["Proving Grounds · Linux",["Twiggy","Exfiltrated","Blackgate","Cockpit","Codo","Extplorer","ClamAV","Pelican","Clue","Zipper"]],
+["Proving Grounds · compléter",["10 machines de plus (liste TJ Null)","10 machines de plus (liste TJ Null)","Contrôle : j’enchaîne des machines intermédiaires seul"]],
+["Mai 2028",["Modèle de rapport prêt","Simulation de 24 h avec rapport n° 1","Simulation de 24 h avec rapport n° 2","Simulation de 24 h avec rapport n° 3","Contrôle : 80 points ou plus dans 2 simulations sur 3 (sinon viser juillet)"]],
+["Examen",["Première tentative (semaine du 12 juin 2028)","Réserve pour la deuxième tentative (juillet et août 2028)"]]
+];
+var mb=document.getElementById("miles");
+M.forEach(function(g,i){
+  var wk=document.createElement("div");wk.className="wk";
+  var h=document.createElement("h3");h.innerHTML="<b>"+g[0]+"</b>";wk.appendChild(h);
+  g[1].forEach(function(t,j){wk.appendChild(row("m"+i+"_"+j,t,""))});
+  mb.appendChild(wk);
+});
+
+function upd(){
+  var done=all.filter(on).length;
+  document.getElementById("fill").style.width=(100*done/all.length)+"%";
+  document.getElementById("pc").textContent=done+" sur "+all.length+" séances faites";
+  wks.forEach(function(w){w.h.lastChild.textContent=w.ids.filter(on).length+" / "+w.ids.length});
+}
+function refresh(){for(var id in CB)CB[id].checked=on(id);upd()}
+
+function status(t){document.getElementById("st").textContent=t}
+function gh(path,o){
+  o=o||{};o.headers={"Authorization":"Bearer "+T,"Accept":"application/vnd.github+json","Content-Type":"application/json"};
+  return fetch("https://api.github.com"+path,o).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()});
+}
+function later(){clearTimeout(timer);timer=setTimeout(sync,1200)}
+function sync(){
+  if(!T){status("Synchronisation désactivée");return}
+  if(busy){later();return}
+  busy=true;status("Synchronisation…");
+  var p=G?Promise.resolve(G):gh("/gists?per_page=100").then(function(l){
+    var f=l.filter(function(g){return g.description===DESC});return f.length?f[0].id:null});
+  p.then(function(id){
+    if(!id)return gh("/gists",{method:"POST",body:JSON.stringify({description:DESC,public:false,files:{"state.json":{content:JSON.stringify(S)}}})}).then(function(g){return{id:g.id,remote:{}}});
+    return gh("/gists/"+id).then(function(g){var r={};try{r=JSON.parse(g.files["state.json"].content)}catch(e){}return{id:id,remote:r}});
+  }).then(function(x){
+    G=x.id;try{localStorage.setItem(KEY+"g",G)}catch(e){}
+    var up=false,k,r=x.remote;
+    for(k in r){if(!S[k]||S[k].t<r[k].t)S[k]=r[k]}
+    for(k in S){if(!r[k]||r[k].t<S[k].t)up=true}
+    save();refresh();
+    if(up)return gh("/gists/"+G,{method:"PATCH",body:JSON.stringify({files:{"state.json":{content:JSON.stringify(S)}}})});
+  }).then(function(){
+    busy=false;status("Synchronisé à "+new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}));
+  }).catch(function(e){
+    busy=false;
+    if(e.message=="404"){G="";try{localStorage.removeItem(KEY+"g")}catch(x){}}
+    status(e.message=="401"?"Jeton refusé : vérifie-le":"Hors ligne ou erreur ("+e.message+")");
+  });
+}
+document.getElementById("cfg").onclick=function(){var f=document.getElementById("form");f.hidden=!f.hidden};
+document.getElementById("sv").onclick=function(){
+  var v=document.getElementById("tok").value.trim();
+  if(!v)return;T=v;try{localStorage.setItem(KEY+"t",T)}catch(e){}
+  document.getElementById("tok").value="";document.getElementById("form").hidden=true;sync();
+};
+document.addEventListener("visibilitychange",function(){if(!document.hidden)sync()});
+window.addEventListener("online",sync);
+upd();sync();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+</body>
+</html>
