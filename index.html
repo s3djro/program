@@ -59,11 +59,15 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function on(id){return !!(S[id]&&S[id].v)}
 
 var H={"2026-12-25":1,"2027-01-01":1,"2027-03-29":1,"2027-05-06":1,"2027-05-17":1};
-var P=[["THM Junior Penetration Tester",40,1],["THM Offensive Pentesting",27,1],["THM Web Application Red Teaming",23,1],["",23,0],["THM Red Teaming (Active Directory)",29,1]];
-var MM=["Relevant","Retro","Internal","Daily Bugle","VulnNet: Active","VulnNet: Internal","Attacktive Directory","Road"];
+var R0=["Exploitation and Weaponisation","Shells & Listeners Fundamentals","Shell Payload Generation & Delivery","Host-Server Configuration Reviews","Linux Privilege Escalation: Enumeration","Linux Privilege Escalation: Basics","Linux Privilege Escalation: Automation","Windows Privilege Escalation","Jump","Windows Jump","Active Directory Basics","Intro to AD Authentication","Intro to AD Breaching","AD: Basic Enumeration","AD: Authenticated Enumeration","Intro to Credential Harvesting","Intro to AD Lateral Movement","Proxy","Forward","Wireless Security","Mobile Application Security","Cloud Security Fundamentals","LLM Pentesting","The Blue Team Perspective","DevSecOps Basics","Python: Simple Demo","Python: Core Concepts","Python: Building Scripts","Python: Pentesting Scripts","Threat Modeling for Pentesters","Planning and Scoping","Writing Pentest Reports","Re-Testing","Machine : Domino","Machine : Silent Monitor","Machine : Dead Drop","Machine : Operation Promotion","Machine : Operation Coldstart","Machine : Net Sec Challenge","Machine : Interceptor"];
+var R1=["Tutorial","Machine : Vulnversity","Machine : Blue","Machine : Kenobi","Machine : Steel Mountain","Machine : Alfred","Machine : HackPark","Machine : Game Zone","Machine : Skynet","Machine : Daily Bugle","Machine : Overpass 2 - Hacked","Machine : Relevant","Machine : Internal","Brainstorm (buffer overflow, facultatif)","Gatekeeper (buffer overflow, facultatif)","Brainpan 1 (buffer overflow, facultatif)","Active Directory Basics","Breaching Active Directory","Enumerating Active Directory","Lateral Movement and Pivoting","Exploiting Active Directory","Persisting Active Directory","Credentials Harvesting","Hacking with PowerShell","Machine : Corp","Machine : Mr Robot CTF","Machine : Retro"];
+var R2=["Breaking Crypto the Simple Way","Length Extension Attacks","Attacking ECB Oracles","Padding Oracles","Insecure Randomness","Custom Tooling Using Python","Custom Tooling using Burp","Tooling via Browser Automation","Machine : CAPTCHApocalypse","Chaining Vulnerabilities","Machine : Extract","Machine : Voyage","Machine : Sequence","WAF: Introduction","WAF: Exploitation Techniques","Machine : Padelify","Machine : Farewell","Input Manipulation & Prompt Injection","LLM Output Handling and Privacy Risks","Data Integrity & Model Poisoning","Machine : Juicy","Machine : BankGPT","Machine : HealthGPT"];
+var R3=["Red Team Fundamentals","Red Team Engagements","Red Team Threat Intel","Red Team OPSEC","Intro to C2","Red Team Recon","Weaponization","Password Attacks","Phishing","The Lay of the Land","Enumeration","Windows Privilege Escalation","Windows Local Persistence","Lateral Movement and Pivoting","Data Exfiltration","Windows Internals","Introduction to Windows API","Abusing Windows Internals","Introduction to Antivirus","AV Evasion: Shellcode","Obfuscation Principles","Signature Evasion","Bypassing UAC","Runtime Detection Evasion","Evading Logging and Monitoring","Living Off the Land","Network Security Solutions","Firewalls","Sandbox Evasion"];
+var P=[["THM Junior Penetration Tester",R0],["THM Offensive Pentesting",R1],["THM Web Application Red Teaming",R2],["",null,23],["THM Red Teaming",R3]];
+var MM=["Relevant (refait sans aide)","Retro (refait sans aide)","Internal (refait sans aide)","Daily Bugle (refait sans aide)","VulnNet: Active","VulnNet: Internal","Attacktive Directory","Road"];
 var SAT=[
- ["samedi · guidée, notes à chaque étape",["Kenobi","Blue","Ignite","Simple CTF","LazyAdmin","Wgel CTF"]],
- ["samedi · seul d’abord, indice à 2 h, walkthrough à 4 h",["Alfred","HackPark","Steel Mountain","Skynet","tomghost","Blaster","Mr Robot","Overpass 2","Anthem","Blueprint","Team","All in One"]],
+ ["samedi · guidée, notes à chaque étape",["Ignite","Simple CTF","LazyAdmin","Wgel CTF","Pickle Rick","Anthem"]],
+ ["samedi · seul d’abord, indice à 2 h, walkthrough à 4 h",["Blaster","tomghost","Blueprint","Thompson","Library","Anonforce","Cyborg","ColddBox: Easy","All in One","Archangel","Team","VulnNet: Node"]],
  ["samedi · sans aide, avec rapport",["Year of the Dog","Undiscovered","Mnemonic","Jeff","Refaire une machine faite avec aide","Refaire une machine faite avec aide"]]
 ];
 function iso(d){return d.toISOString().slice(0,10)}
@@ -72,11 +76,11 @@ var items=[],d=new Date(Date.UTC(2026,10,16)),p=0,n=0;
 while(p<P.length){
   var w=d.getUTCDay(),k=iso(d);
   if(w>0&&w<6&&!H[k]){
-    n++;var ph=P[p],t,s;
-    if(ph[2]){t=ph[0];s="room "+n+" sur "+ph[1]}
-    else{t="Machine THM sans aide : "+MM[Math.floor((n-1)/3)];s="jour "+n+" sur "+ph[1]+" · rapport à la fin"}
+    n++;var ph=P[p],tot=ph[1]?ph[1].length:ph[2],t,s;
+    if(ph[1]){t=ph[1][n-1];s=ph[0]+" · "+n+" sur "+tot}
+    else{t="Machine THM sans aide : "+MM[Math.floor((n-1)/3)];s="jour "+n+" sur "+tot+" · rapport à la fin"}
     items.push({id:k,d:new Date(d),t:t,s:s});
-    if(n==ph[1]){p++;n=0}
+    if(n==tot){p++;n=0}
   }
   d.setUTCDate(d.getUTCDate()+1);
 }
